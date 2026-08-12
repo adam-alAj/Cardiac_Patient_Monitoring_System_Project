@@ -1,0 +1,27 @@
+{
+  "selected_model": "Random Forest (+FE)",
+  "Logistic Regression (+FE)": {
+    "accuracy": 0.8688524590163934,
+    "precision": 0.8125,
+    "recall": 0.9285714285714286,
+    "f1": 0.8666666666666667,
+    "roc_auc": 0.9577922077922079
+  },
+  "Random Forest (+FE)": {
+    "accuracy": 0.8852459016393442,
+    "precision": 0.8387096774193549,
+    "recall": 0.9285714285714286,
+    "f1": 0.8813559322033898,
+    "roc_auc": 0.9556277056277057
+  },
+  "cv_results": {
+    "Logistic Regression (+FE)": {
+      "mean": 0.8167,
+      "std": 0.0132
+    },
+    "Random Forest (+FE)": {
+      "mean": 0.7919,
+      "std": 0.0353
+    }
+  }
+}
