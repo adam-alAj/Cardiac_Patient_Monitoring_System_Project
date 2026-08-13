@@ -11,7 +11,7 @@
 > as a 5-class variable (`num`, 0–4) which I binarized: 0 stays absence, 1–4 collapse to
 > presence, per the dataset's own documentation."
 
-*(Optional visual: `data/data_dictionary.md` §7)*
+*(Optional visual: `data/data_dictionary.md`)*
 
 ---
 
