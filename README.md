@@ -1,229 +1,187 @@
 # Cardiac Patient Monitoring System
 
-An individual **AI & Machine Learning project** built as part of the BinX Tech AI & ML Internship Program. This project applies the full training-track skillset — Python, NumPy, Pandas, Matplotlib, statistics & probability, EDA, supervised learning, model evaluation, feature engineering, Scikit-learn Pipelines, clustering, and PCA — to a public cardiac dataset, with a notebook-first, fully reproducible workflow.
+An individual, curriculum-aligned Machine Learning project analyzing the UCI Cleveland Heart
+Disease dataset: data cleaning, exploratory data analysis, supervised binary classification,
+leakage-free pipelines, and unsupervised structure discovery (clustering + PCA).
 
-> ⚠️ **Important boundary:** This is an **educational machine-learning analysis, not a clinical system**. It does NOT provide clinical diagnosis, treatment recommendations, emergency instructions, or medical decision-making, and it must never be used as such.
-
----
-
-## 🎯 Objective
-
-Build a curriculum-aligned, end-to-end machine-learning analysis that:
-
-1. Cleans and prepares the dataset.
-2. Explores and understands the data statistically.
-3. Performs EDA with meaningful visualizations.
-4. Defines a clear classification problem (presence vs. absence of heart disease).
-5. Trains a simple baseline classifier (Logistic Regression).
-6. Trains at least one additional comparison classifier.
-7. Evaluates models correctly using train/test splitting, cross-validation, and appropriate metrics (Accuracy, Precision, Recall, F1, ROC-AUC).
-8. Analyzes confusion matrices and explains false positives / false negatives.
-9. Performs feature engineering.
-10. Builds a reusable, leakage-free Scikit-learn Pipeline.
-11. Performs an unsupervised analysis (clustering and/or PCA).
-12. Documents methodology, findings, limitations, and reproducibility instructions.
-13. Prepares a 5–10 minute individual demonstration.
+**This is an educational ML analysis, not a clinical diagnostic system.** It does not provide
+diagnosis, treatment recommendations, or emergency guidance, and no output should be used for
+medical decision-making.
 
 ---
 
-## 📊 Dataset
+## 1. Project Overview
 
-**Heart Disease — Cleveland Database** (UCI Machine Learning Repository).
+Built end-to-end in eight sequential Jupyter notebooks, this project covers the full ML
+lifecycle: environment setup → data loading → cleaning → EDA/statistics → baseline model →
+model comparison + cross-validation → feature engineering + pipeline → clustering/PCA →
+findings & limitations.
 
-| Property | Value |
+## 2. Objective
+
+Predict presence vs. absence of heart disease (binary classification) from 13 patient features,
+using models and techniques covered in the training curriculum (Logistic Regression, Random
+Forest, Scikit-learn Pipelines, K-Means, PCA), while explaining results in plain, defensible
+language — no deep learning, no LLMs, no production deployment.
+
+## 3. Dataset
+
+- **Source:** [UCI Machine Learning Repository — Heart Disease (Cleveland)](https://archive.ics.uci.edu/dataset/45/heart+disease), DOI `10.24432/C52P4X`
+- **Size:** 303 observations, 13 features, 1 target (`num`, binarized to `target`)
+- **Missing values:** 6 total (`ca`: 4, `thal`: 2) — see `outputs/results/phase2_data_quality_report.md`
+- **Class balance:** 164 absence (54.1%) / 139 presence (45.9%)
+- Raw file preserved unchanged at `data/raw/heart_disease_cleveland_raw.csv`; all derived files
+  live under `data/processed/`.
+
+## 4. Data Dictionary
+
+See `data/data_dictionary.md` for the full feature-by-feature description (type, meaning, role,
+value codes, missing counts). Quick summary:
+
+| Feature | Type | Role |
+|---|---|---|
+| age, trestbps, chol, thalach, oldpeak | Numerical | Feature |
+| sex, cp, fbs, restecg, exang, slope, ca, thal | Categorical | Feature |
+| num | Integer (5-class) | Original target (preserved, unused for modeling directly) |
+| target | Binary (0/1) | Modeling target (derived from `num`) |
+
+## 5. Environment Setup
+
+Requires Python 3.10+.
+
+```bash
+python3 -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+## 6. Installation
+
+```bash
+git clone <this-repo-url>
+cd cardiac-patient-monitoring
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+jupyter notebook
+```
+
+## 7. How to Run
+
+Run the notebooks **in order** from `notebooks/` — each one depends on files saved by the
+previous one (raw CSV → processed CSVs → saved metrics/pipeline):
+
+| # | Notebook | Produces |
+|---|---|---|
+| 01 | `01_environment_and_data_loading.ipynb` | `data/processed/heart_disease_cleveland_stage1.csv` |
+| 02 | `02_data_cleaning_and_quality.ipynb` | `data/processed/..._stage2.csv`, data-quality report |
+| 03 | `03_eda_statistics_visualization.ipynb` | 7 figures in `outputs/figures/` |
+| 04 | `04_baseline_model.ipynb` | Baseline metrics, confusion matrix, ROC curve |
+| 05 | `05_model_comparison_evaluation.ipynb` | 2nd model, CV, comparison table |
+| 06 | `06_feature_engineering_pipeline.ipynb` | `models/cardiac_pipeline.pkl` |
+| 07 | `07_clustering_pca.ipynb` | Clustering + PCA figures and results |
+| 08 | `08_findings_and_limitations.ipynb` | `outputs/results/phase8_findings_and_limitations.md` |
+
+To reproduce everything from scratch (as verified during Phase 9):
+
+```bash
+cd notebooks
+for nb in 01_environment_and_data_loading 02_data_cleaning_and_quality \
+          03_eda_statistics_visualization 04_baseline_model \
+          05_model_comparison_evaluation 06_feature_engineering_pipeline \
+          07_clustering_pca 08_findings_and_limitations; do
+  jupyter nbconvert --to notebook --execute --inplace "${nb}.ipynb"
+done
+```
+
+## 8. Methodology
+
+1. **Cleaning:** missing values quantified and imputation strategy documented (median for `ca`,
+   mode for `thal`), applied only inside train-fit pipelines — never on the raw file.
+2. **EDA:** descriptive statistics, distribution/outlier analysis (IQR), correlation heatmap,
+   categorical/bivariate breakdowns — every chart followed by written interpretation.
+3. **Supervised learning:** stratified 80/20 train/test split (`random_state=42`), Logistic
+   Regression baseline, Random Forest comparison model, both evaluated identically.
+4. **Evaluation:** stratified 5-fold cross-validation, confusion matrices, accuracy/precision/
+   recall/F1/ROC-AUC, with recall prioritized given the medical framing (false negatives costlier
+   than false positives).
+5. **Feature engineering & pipeline:** two domain-justified engineered features
+   (`hr_reserve_ratio`, `bp_category`) folded into a single `ColumnTransformer` + `Pipeline`,
+   fit only on training data (leakage-free).
+6. **Unsupervised learning:** K-Means (`k` chosen via elbow + silhouette) and PCA (2D), target
+   excluded from the clustering input and used only post-hoc for interpretation.
+
+## 9. Models
+
+| Model | Role |
 |---|---|
-| UCI Dataset ID | 45 |
-| Official Source | https://archive.ics.uci.edu/dataset/45/heart+disease |
-| DOI | 10.24432/C52P4X |
-| Task | Classification |
-| Observations | 303 |
-| Features | 13 |
-| Raw Target | `num` (5 classes: 0–4) |
-| Binary Target | `target` (0 = absence, 1 = presence), derived |
-| Missing Values | Yes (`ca`: 4, `thal`: 2 — 1.98% of rows) |
-| Retrieval Method | `ucimlrepo` package (dataset ID 45), programmatic |
+| Logistic Regression | Baseline — interpretable linear reference point |
+| Random Forest (`n_estimators=300`, `max_depth=5`) | Comparison model — captures non-linear/mixed-type structure |
 
-The dataset was retrieved programmatically from UCI and stored unchanged at `data/raw/heart_disease_cleveland_raw.csv`. Per UCI documentation, patient names and social security numbers were already removed from the source database, so no patient identifiers are used.
+Final saved artifact: `models/cardiac_pipeline.pkl` (Random Forest, selected for consistently
+higher recall — see Section 11).
 
-### Target transformation (documented, non-destructive)
+## 10. Evaluation
 
-The original 5-class `num` target is transformed into a binary `target` column **only on derived datasets**:
+| Model | Accuracy | Precision | Recall | F1 | ROC-AUC | CV F1 (mean ± std) |
+|---|---|---|---|---|---|---|
+| Logistic Regression | 0.869 | 0.813 | 0.929 | 0.867 | **0.958** | **0.825 ± 0.015** |
+| Random Forest | **0.902** | **0.844** | **0.964** | **0.900** | 0.955 | 0.792 ± 0.037 |
 
-```
-num: 0 → target: 0  (absence of heart disease)
-num: 1,2,3,4 → target: 1  (presence of heart disease)
-```
+Random Forest wins every single-split test metric; Logistic Regression is more stable across CV
+folds. After feature engineering (Phase 6), Random Forest's test F1 slightly dropped (0.900 →
+0.881) and Logistic Regression barely moved — a genuine null result, reported as-is.
 
-The raw `num` column is always preserved in the raw file; the binary column is added to processed datasets only.
+## 11. Findings
 
-**Class balance (binary):** absence 164 (54.1%) vs presence 139 (45.9%) — close to balanced. No resampling needed; stratified splitting and stratified K-Fold CV preserve class proportions.
+Full findings and model-selection reasoning: `outputs/results/phase8_findings_and_limitations.md`.
 
----
+- Strongest predictors: `thalach`, `oldpeak` (numerical); `cp`, `thal`, `exang` (categorical) —
+  confirmed independently by both EDA correlation and Random Forest feature importances.
+- K-Means (`k=2`) clusters aligned with the known target post-hoc (77.1% vs 22.1% disease-presence
+  proportions), despite the target never being used to form them.
+- **Random Forest selected** as the final model primarily for its consistently higher recall,
+  the priority metric for this project's medical framing, with its higher CV variance disclosed
+  as an explicit caveat.
 
-## 📖 Data Dictionary / Feature Description
+## 12. Limitations
 
-The full, source-documented data dictionary (features, types, units, value sets, missing counts, and observed statistics) lives at [`data/data_dictionary.md`](./data/data_dictionary.md).
+- Small sample (303 rows; 61-row test set) — metrics carry real uncertainty.
+- Single-source, single-era data (Cleveland only, collected ~1988) — limited generalizability.
+- ~68% male demographic imbalance inherited from the source data.
+- Feature engineering did not improve results in this run.
+- Modest unsupervised cluster separation (silhouette ≈ 0.175).
+- Educational project only — **not validated or intended for clinical use.**
 
-**Feature summary:**
-
-| Feature | Type | Role | Description |
-|---|---|---|---|
-| age | Integer | Feature | Age in years |
-| sex | Categorical | Feature | 0 = female, 1 = male |
-| cp | Categorical | Feature | Chest pain type (1–4) |
-| trestbps | Integer | Feature | Resting blood pressure (mm Hg) |
-| chol | Integer | Feature | Serum cholesterol (mg/dl) |
-| fbs | Categorical | Feature | Fasting blood sugar > 120 mg/dl |
-| restecg | Categorical | Feature | Resting ECG results (0–2) |
-| thalach | Integer | Feature | Maximum heart rate achieved |
-| exang | Categorical | Feature | Exercise-induced angina |
-| oldpeak | Real | Feature | ST depression induced by exercise |
-| slope | Categorical | Feature | Slope of peak exercise ST segment (1–3) |
-| ca | Integer | Feature | Major vessels colored by fluoroscopy (0–3); 4 missing |
-| thal | Categorical | Feature | Thallium test result (3, 6, 7); 2 missing |
-| num | Integer | Target (raw) | Diagnosis status (0–4), preserved |
-| target | Integer | Target (binary) | 0 = absence, 1 = presence (derived) |
-
----
-
-## 🧹 Data Cleaning & Quality (completed)
-
-Two notebooks and two written reports cover the cleaning phase:
-
-- **[01 — Environment, Dataset Loading & Initial Cleaning](./notebooks/01_environment_and_data_loading.ipynb)** *(Milestone M1)* — environment check, raw dataset load, initial inspection (`head`/`tail`/`info`/`describe`), missing-value identification, duplicate check, data-type classification, binary target definition, and the stage-1 processed snapshot.
-- **[02 — Data Cleaning & Data Quality](./notebooks/02_data_cleaning_and_quality.ipynb)** *(Phase 2)* — missing-value strategy, duplicate & invalid-value checks, dtype classification, categorical encoding plan, IQR outlier screening, class-balance confirmation, and the stage-2 checkpoint.
-
-**Key cleaning decisions (documented, nothing destructive):**
-
-| Area | Finding | Decision |
-|---|---|---|
-| Missing values | `ca` (4), `thal` (2) | Median imputation for `ca`, mode imputation for `thal` — applied **inside the Pipeline, fit on training data only** (Phase 6) |
-| Duplicates | 0 | None to remove |
-| Invalid values | None | All categorical values within documented sets |
-| Outliers (IQR) | `trestbps`: 9, `chol`: 5, `oldpeak`: 5, `thalach`: 1, `age`: 0 | Kept — legitimate rare clinical observations; reviewed visually in EDA |
-| Encoding plan | `cp`, `restecg`, `slope`, `thal` (nominal) | One-hot encode; `sex`, `fbs`, `exang` passthrough (already binary) |
-| Raw data | — | Never modified; all transforms go to `data/processed/` |
-
-**Reports:** [`outputs/results/phase1_dataset_validation.md`](./outputs/results/phase1_dataset_validation.md) · [`outputs/results/phase2_data_quality_report.md`](./outputs/results/phase2_data_quality_report.md)
-
----
-
-## 🧪 Methodology (planned workflow)
-
-The project follows the 10-phase plan in [`PHASES.md`](./PHASES.md) (M1–M7 milestones over 14 days):
-
-```text
-Dataset → Project Definition → Environment Setup → Data Loading → Data Cleaning →
-Data Quality → EDA + Statistics → Visualization → Target/Feature Definition →
-Train/Test Split → Baseline Classifier → Second Classifier → Cross-Validation →
-Confusion Matrix → Accuracy/Precision/Recall/F1/ROC-AUC → Model Comparison →
-Feature Engineering → Scikit-learn Pipeline → Clustering → PCA →
-Interpretation → Findings → Limitations → README + Requirements → Final Audit → Demo
-```
-
-### Progress tracker
-
-| Phase | Milestone | Status |
-|---|---|---|
-| 1 — Environment + Dataset | M1 (Days 1–2) | ✅ Complete |
-| 2 — Data Cleaning + Data Quality | M1 (Days 1–2) | ✅ Complete |
-| 3 — EDA + Statistics + Visualization | M2 (Days 3–4) | ⏳ Next |
-| 4 — Supervised Learning: Baseline | M3 (Days 5–6) | ⏳ Planned |
-| 5 — Model Comparison + Evaluation | M4 (Days 7–8) | ⏳ Planned |
-| 6 — Feature Engineering + Pipeline | M5 (Days 9–10) | ⏳ Planned |
-| 7 — Unsupervised: Clustering + PCA | M6 (Days 11–12) | ⏳ Planned |
-| 8 — Findings + Limitations | — | ⏳ Planned |
-| 9 — Documentation + Reproducibility | M7 (Days 13–14) | ⏳ Planned |
-| 10 — Final Audit + Demo | Submission | ⏳ Planned |
-
----
-
-## 🤖 Models & Evaluation (planned)
-
-- **Baseline model:** `LogisticRegression` — simple, interpretable, consistent with the project guide. Feature scaling required.
-- **Comparison model:** one additional Scikit-learn classifier (e.g. `RandomForestClassifier` / `KNeighborsClassifier` / `SVC`), selected based on dataset characteristics and curriculum coverage — justified, not chosen "because it is advanced".
-- **Evaluation:** consistent methodology across both models — stratified train/test split, 5-Fold Stratified Cross-Validation (fold scores + mean ± std), confusion matrix (with FP/FN interpretation), Accuracy, Precision, Recall, F1, ROC-AUC, and a final model-comparison table with an evidence-based winner.
-- **Feature engineering:** meaningful derived features only, each documented (original features → formula → rationale).
-- **Pipeline:** Scikit-learn `ColumnTransformer` + `Pipeline` handling imputation, encoding, and scaling **fit on training data only** to prevent data leakage.
-- **Unsupervised:** K-Means clustering (cluster count justified via a covered method) and/or PCA with 2D visualization, interpreted without clinical claims.
-
-> No metric, cluster, or model result will be reported until produced by executed code (project Rule 1 — no invented results).
-
----
-
-## 📁 Project Structure
+## 13. Project Structure
 
 ```text
 cardiac-patient-monitoring/
 ├── data/
-│   ├── raw/
-│   │   └── heart_disease_cleveland_raw.csv      # Never modified
-│   ├── processed/
-│   │   ├── heart_disease_cleveland_stage1.csv   # Phase 1 snapshot (+ binary target)
-│   │   └── heart_disease_cleveland_stage2.csv   # Phase 2 checkpoint
+│   ├── raw/heart_disease_cleveland_raw.csv       # never modified
+│   ├── processed/                                 # derived, reproducible checkpoints
 │   └── data_dictionary.md
 ├── notebooks/
 │   ├── 01_environment_and_data_loading.ipynb
-│   └── 02_data_cleaning_and_quality.ipynb
+│   ├── 02_data_cleaning_and_quality.ipynb
+│   ├── 03_eda_statistics_visualization.ipynb
+│   ├── 04_baseline_model.ipynb
+│   ├── 05_model_comparison_evaluation.ipynb
+│   ├── 06_feature_engineering_pipeline.ipynb
+│   ├── 07_clustering_pca.ipynb
+│   └── 08_findings_and_limitations.ipynb
+├── models/
+│   └── cardiac_pipeline.pkl                       # final leakage-free pipeline artifact
 ├── outputs/
-│   └── results/
-│       ├── phase1_dataset_validation.md
-│       └── phase2_data_quality_report.md
-├── src/
-│   └── __init__.py                              # Reusable functions (optional)
-├── PHASES.md                                    # Full 10-phase project plan
-├── README.md                                    # ← You are here
+│   ├── figures/                                   # 13 saved EDA/model/PCA figures
+│   ├── confusion_matrix/                          # baseline + comparison-model matrices
+│   └── results/                                   # all metrics, reports, findings (JSON/CSV/MD)
 ├── requirements.txt
-└── .gitignore
+└── README.md
 ```
 
-*Note: `models/` will be added for saved pipeline artifacts if/when Phase 6 is reached; `outputs/figures/` will hold plots from Phase 3 onward.*
+## 14. Reproducibility
 
----
-
-## 🚀 Environment Setup & Installation
-
-The project was developed on **Python 3.14** with Jupyter Notebooks (compatible with modern Python 3.x versions).
-
-```bash
-# 1. Clone the parent repository (with submodules)
-git clone --recurse-submodules https://github.com/adam-alAj/BinX-ML-Internship.git
-cd BinX_ML_Internship/Cardiac_Patient_Monitoring_System_Project
-
-# 2. Create and activate a virtual environment
-python -m venv .venv
-.venv\Scripts\activate          # Windows
-source .venv/bin/activate       # Linux / macOS
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Launch Jupyter and open the notebooks
-python -m jupyter notebook
-```
-
-**Core dependencies** (pinned in `requirements.txt`): `numpy`, `pandas`, `matplotlib`, `seaborn`, `scikit-learn`, `scipy`, `jupyter`, and `ucimlrepo` (dataset retrieval).
-
-**Reproducibility rules:**
-- Notebooks must run top-to-bottom from a clean environment.
-- `data/raw/` is never modified — all cleaning output goes to `data/processed/`.
-- Imputation, scaling, and encoding are fit on training data only (inside the Pipeline) to prevent leakage.
-
----
-
-## ⚠️ Limitations
-
-- **Not a clinical system:** results are for educational purposes and must not inform medical decisions.
-- **Dataset size:** 303 observations is a small sample — limited statistical power and generalization confidence.
-- **Single source:** only the Cleveland database is used (not Hungary/Switzerland/VA Long Beach).
-- **Historical data (1989):** collected decades ago; clinical protocols and population characteristics may differ today.
-- **Missing values** (`ca`, `thal`) are handled by imputation, which is an approximation.
-- **No patient identifiers** are used; de-identification was performed by the original dataset maintainers.
-
----
-
-## 🔗 Related
-
-- [`PHASES.md`](./PHASES.md) — complete 10-phase project plan, milestones, quality gates, and demo plan
-- [`data/data_dictionary.md`](./data/data_dictionary.md) — full feature documentation
-- [Root Repository README](../README.md) — internship overview and progress tracker
+Verified during Phase 9: all generated files (`data/processed/`, `models/`, `outputs/`) were
+deleted and every notebook was re-run in order, from a clean state, using only the raw CSV as
+input. All 8 notebooks executed with zero errors and reproduced **identical metrics** to the
+original runs, due to `random_state=42` fixed everywhere randomness is used.
