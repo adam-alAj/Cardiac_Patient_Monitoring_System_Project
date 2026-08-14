@@ -169,6 +169,10 @@ cardiac-patient-monitoring/
 │   ├── 06_feature_engineering_pipeline.ipynb
 │   ├── 07_clustering_pca.ipynb
 │   └── 08_findings_and_limitations.ipynb
+├── src/
+│   └── feature_engineering.py                     # CardiacFeatureEngineer (imported by notebook 06,
+│                                                    # kept as a real module so the saved pipeline
+│                                                    # artifact is portable outside the notebook)
 ├── models/
 │   └── cardiac_pipeline.pkl                       # final leakage-free pipeline artifact
 ├── outputs/
@@ -185,3 +189,11 @@ Verified during Phase 9: all generated files (`data/processed/`, `models/`, `out
 deleted and every notebook was re-run in order, from a clean state, using only the raw CSV as
 input. All 8 notebooks executed with zero errors and reproduced **identical metrics** to the
 original runs, due to `random_state=42` fixed everywhere randomness is used.
+
+**Pipeline artifact portability (fixed during Phase 10 audit):** the custom
+`CardiacFeatureEngineer` transformer is defined in `src/feature_engineering.py`, not inline in a
+notebook. An earlier version defined it inline, which meant `models/cardiac_pipeline.pkl` could
+only be unpickled from inside that same notebook's kernel and failed with `AttributeError` in any
+other process. This was caught by testing the reload in a genuinely separate `python3` process
+(not just the training notebook) and fixed by moving the class into an importable module —
+verified to now load correctly from an independent process (see notebook 06, Section 10).
